@@ -1,0 +1,106 @@
+import unittest
+from parameterized import parameterized
+
+
+class TestBooksCollector(unittest.TestCase):
+
+    # Тест на добавление новой книги
+    def test_add_new_book(self):
+        collector = BooksCollector()
+        collector.add_new_book("1984")
+        assert "1984" in collector.books_genre
+        assert collector.books_genre["1984"] == ''
+
+    # Тест на добавление книги, превышающей максимальную длину
+    def test_add_new_book_too_long_name(self):
+        collector = BooksCollector()
+        max_length = 40
+        long_title = "A" * (max_length + 1)
+        collector.add_new_book(long_title)
+        assert long_title not in collector.books_genre, f"Книга с длинным названием '{long_title}' была добавлена, хотя должна была быть отклонена."
+
+    # Тест на установку жанра для книги
+    def test_set_book_genre(self):
+        collector = BooksCollector()
+        collector.add_new_book("Fahrenheit 451")
+        collector.set_book_genre("Fahrenheit 451", "Фантастика")
+        assert collector.get_book_genre("Fahrenheit 451") == "Фантастика"
+
+    # Тест на получение жанра книги
+    def test_get_book_genre(self):
+        collector = BooksCollector()
+        collector.add_new_book("The Shining")
+        collector.set_book_genre("The Shining", "Ужасы")
+        assert collector.get_book_genre("The Shining") == collector.books_genre["The Shining"]
+
+    # Тест на получение книг с определенным жанром
+    def test_get_books_with_specific_genre(self):
+        collector = BooksCollector()
+        collector.add_new_book("It")
+        collector.set_book_genre("It", "Ужасы")
+        collector.add_new_book("Harry Potter")
+        collector.set_book_genre("Harry Potter", "Фантастика")
+        books = collector.get_books_with_specific_genre("Ужасы")
+        assert "It" in books
+        assert "Harry Potter" not in books
+
+    # Тест на получение детских книг
+    def test_get_books_for_children(self):
+        collector = BooksCollector()
+        collector.add_new_book("Маша и Медведь")
+        collector.set_book_genre("Маша и Медведь", "Мультфильмы")
+        collector.add_new_book("Ужас Вихря")
+        collector.set_book_genre("Ужас Вихря", "Ужасы")
+        children_books = collector.get_books_for_children()
+        assert "Маша и Медведь" in children_books
+        assert "Ужас Вихря" not in children_books
+
+    # Тест на добавление книги в избранное
+    def test_add_book_in_favorites(self):
+        collector = BooksCollector()
+        collector.add_new_book("Lord of the Flies")
+        collector.add_book_in_favorites("Lord of the Flies")
+        assert "Lord of the Flies" in collector.get_list_of_favorites_books()
+
+    # Тест на удаление книги из избранного
+    def test_delete_book_from_favorites(self):
+        collector = BooksCollector()
+        collector.add_new_book("Pride and Prejudice")
+        collector.add_book_in_favorites("Pride and Prejudice")
+        collector.delete_book_from_favorites("Pride and Prejudice")
+        assert "Pride and Prejudice" not in collector.get_list_of_favorites_books()
+
+    # Тест на невозможность повторной записи книги в избранное
+    def test_add_book_in_favorites_twice(self):
+        collector = BooksCollector()
+        collector.add_new_book("The Great Gatsby")
+        collector.add_book_in_favorites("The Great Gatsby")
+        collector.add_book_in_favorites("The Great Gatsby")
+        assert len(collector.get_list_of_favorites_books()) == 1
+
+    # Параметризованный тест на добавление книг
+    @parameterized.expand([
+        ("The Catcher in the Rye",),
+        ("To Kill a Mockingbird",),
+        ("Brave New World",)
+    ])
+    def test_add_books_with_parameterization(self, book_name):
+        collector = BooksCollector()
+        collector.add_new_book(book_name)
+        assert book_name in collector.books_genre
+
+    # Дополнительный тест для метода get_books_genre
+    def test_get_books_genre(self):
+        collector = BooksCollector()
+        collector.add_new_book("War and Peace")
+        collector.set_book_genre("War and Peace", "Classic")
+        result = collector.get_books_genre()
+        expected = {"War and Peace": "Classic"}
+        assert result == expected
+
+    # Дополнительный тест для метода get_list_of_favorites_books
+    def test_get_list_of_favorites_books_positive(self):
+        collector = BooksCollector()
+        collector.add_new_book("Great Expectations")
+        collector.add_book_in_favorites("Great Expectations")
+        assert collector.get_list_of_favorites_books() == ["Great Expectations"]
